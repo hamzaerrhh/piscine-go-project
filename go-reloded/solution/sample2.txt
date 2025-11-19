@@ -1,0 +1,9 @@
+this is all wrong (up, 3)
+
+we need a better test case (cap, 4)
+Fix this text , please (cap, 3) now !
+this (cap) is 2F (hex) tests , it (cap) is a honor to test (low, 3) ...
+as they say : ' testing (up, 2) is fun ' , right ?
+make this 😀 fun (up, 2) please !
+fix this (up, 1)
+this (cap) is ' an example 😀 with emojis ' , containing 2A (hex) values , and a amazing twist (up, 3) ! ...
