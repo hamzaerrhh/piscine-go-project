@@ -28,19 +28,19 @@ func main() {
 
 	inputText := string(data)
 
-	// Tokenize the text
 	tokens := helper.Tokenize(inputText)
 	
-	// Process the tokens
+
 	processedTokens := helper.ProcessTokens(tokens)
 	
-	// Convert back to string
+	
+
 	result := helper.TokensToString(processedTokens)
+
 	
-	// Final cleanup
-	result = helper.CleanText(result)
-	
-	// Write to output file
+	result = helper.CleanUpText(result)
+
+
 	err = os.WriteFile(outputFile, []byte(result), 0644)
 	if err != nil {
 		fmt.Printf("Error writing file: %v\n", err)

@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -112,8 +113,6 @@ func ProcessTokens(tokens []Token) []Token {
 	tokens = handleCommands(tokens)
 
 	tokens = HandleAAn(tokens)
-	tokens = HandlePunctuation(tokens)
-	tokens = HandleQuotes(tokens)
 	return tokens
 }
 
@@ -175,36 +174,38 @@ func TokensToString(tokens []Token) string {
 	return result.String()
 }
 //etaps 4
-func CleanText(text string) string {
-	// Fix punctuation spacing but preserve newlines
-	lines := strings.Split(text, "\n")
 
-	for i, line := range lines {
-		// Apply cleanup to each line individually
-		// Fix spaces before punctuation (but preserve intended spaces)
-		line = strings.ReplaceAll(line, " .", ".")
-		line = strings.ReplaceAll(line, " ,", ",")
-		line = strings.ReplaceAll(line, " !", "!")
-		line = strings.ReplaceAll(line, " ?", "?")
-		line = strings.ReplaceAll(line, " :", ":")
-		line = strings.ReplaceAll(line, " ;", ";")
+func CleanUpText(input string) string {
+    if input == "" {
+        return input
+    }
 
-		// Fix spaces around quotes - be more careful
-		line = strings.ReplaceAll(line, " ' ", "' ")
-		line = strings.ReplaceAll(line, "' ", "'")
-		line = strings.ReplaceAll(line, " '", "'")
+    input = strings.ReplaceAll(input, "...", "§ELLIPSIS§")
+    input = strings.ReplaceAll(input, "!?", "§BANGQ§")
 
-		// Ensure space after colon when followed by quote
-		line = strings.ReplaceAll(line, ":'", ": '")
+ 
+    rePunct := regexp.MustCompile(`\s*([.,!?;:])\s*`)
+    input = rePunct.ReplaceAllString(input, "${1} ")
 
-		// Clean up multiple spaces (but preserve single spaces)
-		for strings.Contains(line, "  ") {
-			line = strings.ReplaceAll(line, "  ", " ")
-		}
+    for strings.Contains(input, "  ") {
+        input = strings.ReplaceAll(input, "  ", " ")
+    }
 
-		lines[i] = strings.TrimSpace(line)
-	}
+    input = strings.TrimSpace(input)
 
-	// Join lines back with newlines
-	return strings.Join(lines, "\n")
+    input = strings.ReplaceAll(input, "§ELLIPSIS§", "...")
+    input = strings.ReplaceAll(input, "§BANGQ§", "!?")
+
+ 
+    reQuotes := regexp.MustCompile(`'\s*([^']*?)\s*'`)
+    input = reQuotes.ReplaceAllStringFunc(input, func(match string) string {
+        start := strings.Index(match, "'") + 1
+        end := strings.LastIndex(match, "'")
+        content := match[start:end]
+
+        content = strings.TrimSpace(content) // keep internal spaces
+        return "'" + content + "'"
+    })
+
+    return input
 }

@@ -66,9 +66,7 @@ func handleCommands(tokens []Token) []Token {
 	
 	for i := 0; i < len(tokens); i++ {
 		if tokens[i].Type == COMMAND {
-			fmt.Println("command", tokens[i])
 			if len(tokens[i].Children) > 0 {
-				fmt.Println("children", tokens[i].Children)
 				processedChildren := handleCommands(tokens[i].Children)
 				tokens[i].Children = processedChildren
 			}
@@ -170,7 +168,6 @@ info, err := os.Stat(filePath)
 		fmt.Println("Error checking file:", err)
 		return
 	}
-	fmt.Println("sie",info.Size())
 
 	if info.Size() > maxSize {
 		fmt.Println("Error: file is larger than 200MB")
