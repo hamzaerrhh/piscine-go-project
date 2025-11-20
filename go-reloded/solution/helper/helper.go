@@ -1,7 +1,11 @@
 package helper
 
 import (
+	"fmt"
+	"os"
+	"regexp"
 	"strconv"
+
 	"strings"
 	"unicode"
 )
@@ -62,7 +66,9 @@ func handleCommands(tokens []Token) []Token {
 	
 	for i := 0; i < len(tokens); i++ {
 		if tokens[i].Type == COMMAND {
+			fmt.Println("command", tokens[i])
 			if len(tokens[i].Children) > 0 {
+				fmt.Println("children", tokens[i].Children)
 				processedChildren := handleCommands(tokens[i].Children)
 				tokens[i].Children = processedChildren
 			}
@@ -156,4 +162,29 @@ func extractCommand(children []Token) commandInfo {
 	}
 	
 	return cmd
+}
+func ProtectLayer(filePath,output string){
+maxSize:= int64(200 * 1024 * 1024)
+info, err := os.Stat(filePath)
+	if err != nil {
+		fmt.Println("Error checking file:", err)
+		return
+	}
+	fmt.Println("sie",info.Size())
+
+	if info.Size() > maxSize {
+		fmt.Println("Error: file is larger than 200MB")
+		os.Exit(0)
+	}
+	// REGEX: match anything ending with main.go
+	blockMain := regexp.MustCompile(`.go$`)
+
+	if blockMain.MatchString(output) || blockMain.MatchString(filePath) {
+		fmt.Println("Error: output file cannot be main.go")
+		os.Exit(0)
+	}
+
+
+	
+
 }

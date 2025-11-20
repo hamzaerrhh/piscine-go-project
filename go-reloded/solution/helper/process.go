@@ -32,7 +32,6 @@ func tokenizeRunes(runes []rune, i int) ([]Token, int) {
 
 	for i < len(runes) {
 		c := runes[i]
-
 		switch {
 		case c == '(':
 			tok, next := readCommand(runes, i)
@@ -40,7 +39,6 @@ func tokenizeRunes(runes []rune, i int) ([]Token, int) {
 			i = next
 
 		case c == '\n':
-			// Handle newline as a separate token
 			tokens = append(tokens, Token{Type: SPACE, Value: "\n"})
 			i++
 
@@ -70,10 +68,7 @@ func tokenizeRunes(runes []rune, i int) ([]Token, int) {
 			}
 			tokens = append(tokens, Token{Type: SPACE, Value: string(runes[start:i])})
 
-		default:
-			// Handle any other characters (including emojis that might not be caught above)
-			tokens = append(tokens, Token{Type: WORD, Value: string([]rune{c})})
-			i++
+	
 		}
 	}
 
@@ -84,7 +79,6 @@ func readCommand(runes []rune, start int) (Token, int) {
 	i := start + 1
 	depth := 1
 
-	// find matching parentheses
 	for i < len(runes) && depth > 0 {
 		if runes[i] == '(' {
 			depth++
@@ -113,17 +107,16 @@ func readCommand(runes []rune, start int) (Token, int) {
 }
 
 
-//etaps 2
 
 func ProcessTokens(tokens []Token) []Token {
 	tokens = handleCommands(tokens)
+
 	tokens = HandleAAn(tokens)
 	tokens = HandlePunctuation(tokens)
 	tokens = HandleQuotes(tokens)
 	return tokens
 }
 
-//etaps 3
 func TokensToString(tokens []Token) string {
 	var result strings.Builder
 	

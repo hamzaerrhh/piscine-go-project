@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+
 func main() {
 	if len(os.Args) != 3 {
 		fmt.Println("Usage: go run . <input_file> <output_file>")
@@ -14,6 +15,9 @@ func main() {
 
 	inputFile := os.Args[1]
 	outputFile := os.Args[2]
+	
+ //protect file 
+    helper.ProtectLayer(inputFile,outputFile)
 
 	// Read input file
 	data, err := os.ReadFile(inputFile)
