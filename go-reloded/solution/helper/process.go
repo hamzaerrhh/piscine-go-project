@@ -112,14 +112,13 @@ func readCommand(runes []rune, start int) (Token, int) {
 func ProcessTokens(tokens []Token) []Token {
 	tokens = handleCommands(tokens)
 
-	tokens = HandleAAn(tokens)
 	return tokens
 }
 
 func TokensToString(tokens []Token) string {
 	var result strings.Builder
 	
-	for i, token := range tokens {
+	for _, token := range tokens {
 		switch token.Type {
 		case WORD:
 			result.WriteString(token.Value)
@@ -133,79 +132,74 @@ func TokensToString(tokens []Token) string {
 			} else {
 				result.WriteString(" ")
 			}
-		case COMMAND:
-			// Commands are removed from final output
+
+	
 		}
 		
-		// Improved spacing logic
-		if i < len(tokens)-1 {
-			currentToken := token
-			nextToken := tokens[i+1]
-			
-			// Add space after words unless next is punctuation or we're at newline
-			if currentToken.Type == WORD {
-				if nextToken.Type == SPACE && nextToken.Value == "\n" {
-					// Don't add space before newline
-					continue
-				} else if nextToken.Type == WORD || nextToken.Type == QUOTE {
-					result.WriteString(" ")
-				}
-			}else if currentToken.Type == PUNCT {
-				if nextToken.Type == WORD || nextToken.Type == QUOTE {
-					result.WriteString(" ")
-				}
-			}			else if currentToken.Type == QUOTE {
-				// Count quotes to determine if this is opening or closing
-				quoteCount := 0
-				for j := 0; j <= i; j++ {
-					if tokens[j].Type == QUOTE {
-						quoteCount++
-					}
-				}
-				if quoteCount%2 == 1 && nextToken.Type == WORD { // Opening quote
-					// No space - quote attaches to word
-				} else if nextToken.Type == WORD {
-					result.WriteString(" ")
-				}
-			}
-		}
+	
 	}
 	
 	return result.String()
 }
-//etaps 4
-
 func CleanUpText(input string) string {
-    if input == "" {
-        return input
-    }
+	if input == "" {
+		return input
+	}
 
-    input = strings.ReplaceAll(input, "...", "§ELLIPSIS§")
-    input = strings.ReplaceAll(input, "!?", "§BANGQ§")
+	// Split input into lines
+	lines := strings.Split(input, "\n")
 
- 
-    rePunct := regexp.MustCompile(`\s*([.,!?;:])\s*`)
-    input = rePunct.ReplaceAllString(input, "${1} ")
+	for i, line := range lines {
+		// Remove extra spaces
+		for strings.Contains(line, "  ") {
+			line = strings.ReplaceAll(line, "  ", " ")
+		}
+		line = strings.TrimSpace(line)
 
-    for strings.Contains(input, "  ") {
-        input = strings.ReplaceAll(input, "  ", " ")
-    }
+	
 
-    input = strings.TrimSpace(input)
+		// Fix punctuation
+		line = FixPunctuation(line)
+			// Handle quotes
+		reQuotes := regexp.MustCompile(`'\s*([^']*?)\s*'`)
+		line = reQuotes.ReplaceAllStringFunc(line, func(match string) string {
+			start := strings.Index(match, "'") + 1
+			end := strings.LastIndex(match, "'")
+			content := match[start:end]
+			content = strings.TrimSpace(content) // keep internal spaces
+			return "'" + content + "'"
+		})
 
-    input = strings.ReplaceAll(input, "§ELLIPSIS§", "...")
-    input = strings.ReplaceAll(input, "§BANGQ§", "!?")
+		// Handle 'a' → 'an'
+		reAtoAn := regexp.MustCompile(`\b([Aa])\s+([aeiouhAEIOUH]\w*)`)
+		line = reAtoAn.ReplaceAllString(line, "an $2")
 
- 
-    reQuotes := regexp.MustCompile(`'\s*([^']*?)\s*'`)
-    input = reQuotes.ReplaceAllStringFunc(input, func(match string) string {
-        start := strings.Index(match, "'") + 1
-        end := strings.LastIndex(match, "'")
-        content := match[start:end]
+		lines[i] = line
+	}
 
-        content = strings.TrimSpace(content) // keep internal spaces
-        return "'" + content + "'"
-    })
+	// Join lines back preserving newlines
+	return strings.Join(lines, "\n")
+}
 
-    return input
+func FixPunctuation(input string) string {
+	if input == "" {
+		return input
+	}
+
+	// Merge consecutive punctuation groups
+	reMerge := regexp.MustCompile(`([.,!?;:]+)\s+([.,!?;:]+)`)
+	input = reMerge.ReplaceAllString(input, "$1$2")
+
+	// Remove space before punctuation
+	reBefore := regexp.MustCompile(`\s+([.,!?;:]+)`)
+	input = reBefore.ReplaceAllString(input, "$1")
+
+	// Ensure exactly one space after punctuation if not end of string
+	reAfter := regexp.MustCompile(`([.,!?;:]+)([^\s.,!?;:]|$)`)
+	input = reAfter.ReplaceAllString(input, "$1 $2")
+
+	// Collapse multiple spaces, but do not remove newlines (already handled line by line)
+	input = strings.Join(strings.Fields(input), " ")
+
+	return input
 }
